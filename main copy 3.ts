@@ -48,33 +48,14 @@ export default class DiaryMergerPlugin extends Plugin {
         }
     }
 
-    // 自动合并检查 - 修复逻辑
+    // 自动合并检查
     async autoMergeIfNeeded() {
         if (this.isMerging) return;
-        this.isMerging = true;
         
-        try {
-            // 获取今天之前的所有日记文件
-            const files = await this.getDiaryFiles();
-            
-            // 计算需要合并的文件数量（排除今天）
-            const filesToMergeCount = files.length;
-            
-            // 只有当今天之前的日记数量达到合并阈值时才触发合并
-            if (filesToMergeCount >= this.settings.maxEntriesPerFile) {
-                new Notice('自动合并日记中...');
-                
-                // 只合并最早的一组文件（达到合并阈值的部分）
-                const batchSize = this.settings.maxEntriesPerFile;
-                const batchToMerge = files.slice(0, batchSize);
-                
-                await this.processBatch(batchToMerge);
-            }
-        } catch (error) {
-            console.error('自动合并失败:', error);
-            new Notice('自动合并失败，请查看控制台');
-        } finally {
-            this.isMerging = false;
+        const files = await this.getDiaryFiles();
+        if (files.length >= this.settings.maxEntriesPerFile) {
+            new Notice('自动合并日记中...');
+            this.performMerge(files);
         }
     }
 
@@ -99,23 +80,13 @@ export default class DiaryMergerPlugin extends Plugin {
                 await this.saveSettings();
             }
 
-            // 将文件分成多个批次
-            const batches = this.splitIntoBatches(files, this.settings.maxEntriesPerFile);
-            
-            for (const batch of batches) {
-                await this.processBatch(batch);
-            }
-            
-            new Notice(`共创建 ${batches.length} 个合并文件`);
-        } catch (error) {
-            console.error('合并失败:', error);
-            new Notice('合并失败，请查看控制台');
+            await this.performMerge(files);
         } finally {
             this.isMerging = false;
         }
     }
 
-    // 获取日记文件列表（今天之前的）
+    // 获取日记文件列表
     async getDiaryFiles(): Promise<TFile[]> {
         const diaryFolder = this.app.vault.getAbstractFileByPath(this.settings.diaryFolder);
         if (!(diaryFolder instanceof TFolder)) {
@@ -124,15 +95,13 @@ export default class DiaryMergerPlugin extends Plugin {
         }
 
         const today = window.moment().format(this.settings.dateFormat);
-        
         return diaryFolder.children
             .filter((file): file is TFile => file instanceof TFile && file.name.endsWith('.md'))
             .filter(file => {
                 const dateStr = file.basename;
-                // 只包括今天之前的有效日期文件
                 return dateStr !== today && window.moment(dateStr, this.settings.dateFormat, true).isValid();
             })
-            .sort((a, b) => a.name.localeCompare(b.name)); // 按日期排序
+            .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     // 从文件名中提取日期
@@ -182,46 +151,51 @@ export default class DiaryMergerPlugin extends Plugin {
         });
     }
 
-    // 处理一个批次的文件
-    async processBatch(batch: TFile[]) {
-        if (batch.length === 0) return;
-        
-        // 计算当前批次的日期范围
-        const firstFileDate = this.extractDateFromFilename(batch[0].name);
-        const lastFileDate = this.extractDateFromFilename(batch[batch.length - 1].name);
-        
-        if (!firstFileDate || !lastFileDate) {
-            new Notice('无法从文件名中提取日期');
-            return;
-        }
-        
-        // 创建合并文件
-        const mergedFileName = `merged-${firstFileDate}_to_${lastFileDate}.md`;
-        const mergedFilePath = `${this.settings.diaryFolder}/${mergedFileName}`;
-        
-        // 创建合并内容
-        let mergedContent = '';
-        for (const file of batch) {
-            const content = await this.app.vault.read(file);
-            mergedContent += `# ${file.basename}\n\n${content}\n\n`;
-        }
-        
-        // 创建或覆盖合并文件
-        await this.app.vault.create(mergedFilePath, mergedContent);
-        
-        // 备份当前批次（如果需要）
+    // 执行合并操作（核心功能）
+    async performMerge(files: TFile[]) {
+        // 备份文件（如果需要）
         if (this.settings.mergeAction === 'backup') {
-            await this.backupFiles(batch);
+            await this.backupFiles(files);
         }
         
-        // 删除原始文件
-        if (this.settings.mergeAction === 'delete' || this.settings.mergeAction === 'backup') {
-            for (const file of batch) {
-                await this.app.vault.delete(file);
+        // 将文件分成多个批次（每组最多 maxEntriesPerFile 个文件）
+        const batches = this.splitIntoBatches(files, this.settings.maxEntriesPerFile);
+        
+        for (const batch of batches) {
+            // 计算当前批次的日期范围
+            const firstFileDate = this.extractDateFromFilename(batch[0].name);
+            const lastFileDate = this.extractDateFromFilename(batch[batch.length - 1].name);
+            
+            if (!firstFileDate || !lastFileDate) {
+                new Notice('无法从文件名中提取日期');
+                continue;
             }
+            
+            // 创建合并文件
+            const mergedFileName = `merged-${firstFileDate}_to_${lastFileDate}.md`;
+            const mergedFilePath = `${this.settings.diaryFolder}/${mergedFileName}`;
+            
+            // 创建合并内容
+            let mergedContent = '';
+            for (const file of batch) {
+                const content = await this.app.vault.read(file);
+                mergedContent += `# ${file.basename}\n\n${content}\n\n`;
+            }
+            
+            // 创建或覆盖合并文件
+            await this.app.vault.create(mergedFilePath, mergedContent);
+            
+            // 删除原始文件
+            if (this.settings.mergeAction === 'delete' || this.settings.mergeAction === 'backup') {
+                for (const file of batch) {
+                    await this.app.vault.delete(file);
+                }
+            }
+            
+            new Notice(`已创建合并文件: ${mergedFileName}`);
         }
         
-        new Notice(`已创建合并文件: ${mergedFileName}`);
+        new Notice(`共创建 ${batches.length} 个合并文件`);
     }
 
     // 将文件分成多个批次
@@ -323,7 +297,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('启用自动合并')
-            .setDesc('当日记数量达到阈值时自动合并旧日记')
+            .setDesc('当日记数量达到阈值时自动合并')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.autoMerge)
                 .onChange(async (value) => {

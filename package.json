@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-diary-merger",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Merge past diaries into a single file",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
