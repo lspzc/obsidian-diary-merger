@@ -14,7 +14,6 @@ import {
 interface DiaryMergeSettings {
 	diaryFolder: string;
 	backupFolder: string;
-	mergedOutputFolder: string;
 	dateFormat: string;
 	maxEntriesPerFile: number;
 	autoMerge: boolean;
@@ -26,7 +25,6 @@ interface DiaryMergeSettings {
 const DEFAULT_SETTINGS: DiaryMergeSettings = {
 	diaryFolder: "system/Diary",
 	backupFolder: "system/Diary/backups",
-	mergedOutputFolder: "system/Diary/mergeds",
 	dateFormat: "YYYY-MM-DD",
 	maxEntriesPerFile: 10,
 	autoMerge: false,
@@ -148,7 +146,7 @@ export default class DiaryMergerPlugin extends Plugin {
 		try {
 			const files = await this.getDiaryFiles();
 			if (files.length === 0) {
-				this.showNotice("没有需要合并的日记文件", true);
+				this.showNotice("没有需要合并的日记文件");
 				return;
 			}
 
@@ -255,15 +253,14 @@ export default class DiaryMergerPlugin extends Plugin {
 
 	// 查找最新的合并文件
 	async findLatestMergedFile(): Promise<TFile | null> {
-		// 使用合并文件输出路径
-		const outputFolder = this.app.vault.getAbstractFileByPath(
-			this.settings.mergedOutputFolder
+		const diaryFolder = this.app.vault.getAbstractFileByPath(
+			this.settings.diaryFolder
 		);
 
-		if (!(outputFolder instanceof TFolder)) return null;
+		if (!(diaryFolder instanceof TFolder)) return null;
 
 		// 获取所有合并文件（以"merged-"开头）
-		const mergedFiles = outputFolder.children
+		const mergedFiles = diaryFolder.children
 			.filter(
 				(file): file is TFile =>
 					file instanceof TFile &&
@@ -303,38 +300,6 @@ export default class DiaryMergerPlugin extends Plugin {
 
 			// 更新合并文件
 			await this.app.vault.modify(mergedFile, mergedContent);
-
-			// 更新合并文件名称
-			try {
-				// 1. 从原文件名中提取起始日期
-				const oldName = mergedFile.name;
-				const dateRangeMatch = oldName.match(
-					/^merged-(\d{4}-\d{2}-\d{2})_to_(\d{4}-\d{2}-\d{2})\.md$/
-				);
-
-				if (dateRangeMatch) {
-					// 2. 获取新的结束日期（最后追加的文件日期）
-					const newEndDate = files[files.length - 1].basename;
-					// 3. 保持原始起始日期不变
-					const originalStartDate = dateRangeMatch[1];
-					// 4. 生成新文件名
-					const newName = `merged-${originalStartDate}_to_${newEndDate}.md`;
-
-					// 5. 仅当日期变化时才重命名
-					if (newName !== oldName) {
-						const newPath = `${mergedFile.parent?.path}/${newName}`;
-						await this.app.vault.rename(mergedFile, newPath);
-						this.showNotice(
-							`已更新合并文件名: ${oldName} → ${newName}`
-						);
-					}
-				} else {
-					console.warn("无法解析合并文件名格式，跳过重命名");
-				}
-			} catch (renameError) {
-				console.error("重命名合并文件失败:", renameError);
-				this.showNotice("合并文件重命名失败，但内容已更新", true);
-			}
 
 			// 备份或删除原始文件
 			if (this.settings.mergeAction === "backup") {
@@ -376,17 +341,7 @@ export default class DiaryMergerPlugin extends Plugin {
 
 		// 创建合并文件
 		const mergedFileName = `merged-${firstFileDate}_to_${lastFileDate}.md`;
-
-		// 使用用户自定义的输出路径
-		const mergedFilePath = `${this.settings.mergedOutputFolder}/${mergedFileName}`;
-
-		// 确保输出文件夹存在
-		const outputFolder = this.app.vault.getAbstractFileByPath(
-			this.settings.mergedOutputFolder
-		);
-		if (!outputFolder) {
-			await this.app.vault.createFolder(this.settings.mergedOutputFolder);
-		}
+		const mergedFilePath = `${this.settings.diaryFolder}/${mergedFileName}`;
 
 		// 创建合并内容
 		let mergedContent = "";
@@ -665,56 +620,33 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 		// === 中间设置项 ===
 		new Setting(containerEl)
 			.setName("日记文件夹路径")
-			.setDesc("存储日记文件的文件夹路径 >>> 默认路径：system/Diary")
+			.setDesc("存储日记文件的文件夹路径(默认路径：system/Diary)")
 			.addText((text) =>
 				text
 					.setPlaceholder("例如: system/Diary")
 					.setValue(this.plugin.settings.diaryFolder)
 					.onChange(async (value) => {
-						// 移除路径开头的斜杠避免错误
-						const cleanPath = value.replace(/^\//, "");
-						this.plugin.settings.diaryFolder = cleanPath;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("合并文件输出路径")
-			.setDesc(
-				"合并后生成文件的存储位置 >>> 默认路径：system/Diary/mergeds"
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("例如: system/Diary/mergeds")
-					.setValue(this.plugin.settings.mergedOutputFolder)
-					.onChange(async (value) => {
-						// 移除路径开头的斜杠避免错误
-						const cleanPath = value.replace(/^\//, "");
-						this.plugin.settings.mergedOutputFolder = cleanPath;
+						this.plugin.settings.diaryFolder = value;
 						await this.plugin.saveSettings();
 					})
 			);
 
 		new Setting(containerEl)
 			.setName("备份文件夹路径")
-			.setDesc("备份日记的文件夹路径 >>> 默认路径：system/Diary/backups")
+			.setDesc("备份日记的文件夹路径(默认路径：`system/Diary/backups`)")
 			.addText((text) =>
 				text
 					.setPlaceholder("例如: system/Diary/backups")
 					.setValue(this.plugin.settings.backupFolder)
 					.onChange(async (value) => {
-						// 移除路径开头的斜杠避免错误
-						const cleanPath = value.replace(/^\//, "");
-						this.plugin.settings.backupFolder = cleanPath;
+						this.plugin.settings.backupFolder = value;
 						await this.plugin.saveSettings();
 					})
 			);
 
 		new Setting(containerEl)
 			.setName("日记文件名称格式")
-			.setDesc(
-				"日记文件名称的日期格式 >>> 建议使用 obsidian 默认格式：YYYY-MM-DD"
-			)
+			.setDesc("日记文件名称的日期格式(obsidian 默认格式：YYYY-MM-DD)")
 			.addText((text) =>
 				text
 					.setPlaceholder("例如: YYYY-MM-DD")
@@ -727,9 +659,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("合并文件最大条目数")
-			.setDesc(
-				"每个合并文件最大可以合并多少篇日记 >>> 默认最大条目数：10"
-			)
+			.setDesc("每个合并文件最大可以合并多少篇日记(默认最大条目数：10)")
 			.addSlider((slider) =>
 				slider
 					.setLimits(5, 100, 5)
@@ -744,7 +674,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("自动合并阈值")
 			.setDesc(
-				"当今天以前的日记数量达到此阈值时成为触发自动合并的一个必要条件 >>> 默认合并阈值：1"
+				"当今天以前的日记数量达到此阈值时成为触发自动合并的一个必要条件(默认合并阈值：1)"
 			)
 			.addSlider((slider) =>
 				slider
@@ -760,7 +690,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("启用自动合并")
 			.setDesc(
-				"自动合并触发条件：开启自动合并 && 达到自动合并阈值 && 在日记文件路径创建今天的日记 >>> 默认不启用"
+				"自动合并触发条件：开启自动合并 && 达到自动合并阈值 && 在日记文件路径创建今天的日记(默认不启用)"
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -773,7 +703,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("默认处理方式")
-			.setDesc("合并后对原日记的处理方式 >>> 默认备份后删除")
+			.setDesc("合并后对原日记的处理方式(默认备份后删除)")
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("backup", "备份后删除")
@@ -788,7 +718,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("关闭操作提示")
 			.setDesc(
-				"启用后将关闭右上角显示操作进度和结果提示 >>> 默认显示操作提示"
+				"启用后将关闭右上角显示操作进度和结果提示(默认显示操作提示)"
 			)
 			.addToggle((toggle) =>
 				toggle
