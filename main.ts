@@ -398,7 +398,7 @@ export default class DiaryMergerPlugin extends Plugin {
 		// 创建或覆盖合并文件
 		await this.app.vault.create(mergedFilePath, mergedContent);
 
-		// 备份当前批次（如果需要）
+		// 备份当前批次
 		if (this.settings.mergeAction === "backup") {
 			await this.backupFiles(batch);
 		}
