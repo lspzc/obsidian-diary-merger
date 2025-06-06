@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-diary-merger",
-	"version": "1.0.0",
+	"version": "1.0.3",
 	"description": "Merge past diaries into a single file",
 	"main": "main.js",
 	"scripts": {
