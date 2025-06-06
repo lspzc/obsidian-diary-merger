@@ -645,7 +645,7 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 		smallTip.append("3. 插件文档地址：");
 		smallTip.createEl("a", {
 			text: "查看 github 文档",
-			href: "https://github.com/lspzc/obsidian-diary-merger",
+			href: "https://github.com/lspzc/obsidian-diary-merger/blob/master/documentation/%E6%8F%92%E4%BB%B6%EF%BC%9ADiary%20Merger%20%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3.md",
 			cls: "diary-merger-smallTip-link",
 		});
 		smallTip.append(" 或者 ");

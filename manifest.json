@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-diary-merger",
 	"name": "Diary Merger",
-	"version": "1.0.8",
+	"version": "1.1.0",
 	"minAppVersion": "1.8.10",
 	"description": "按照阈值与条目数 `自动/手动` 合并或追加多个日记文件至一个或多个合并文件中",
 	"author": "lspzc",

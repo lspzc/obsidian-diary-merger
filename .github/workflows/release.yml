@@ -13,9 +13,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v3
-              with:
-                  # 禁用自动源码压缩包的关键设置
-                  fetch-depth: 0
 
             - name: Use Node.js
               uses: actions/setup-node@v3
@@ -23,26 +20,23 @@ jobs:
                   node-version: "18.x"
 
             - name: Build and Package
-              id: package
               run: |
                   npm install
                   npm run build
-
-                  # 创建包含所有文件的ZIP
-                  ZIP_FILE="${{ env.PLUGIN_NAME }}-${GITHUB_REF#refs/tags/}.zip"
-                  zip -r "$ZIP_FILE" main.js manifest.json styles.css
-
-                  # 保存ZIP文件名供后续步骤使用
-                  echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
-                  echo "::set-output name=zip_file::$ZIP_FILE"
+                  # 创建包含所有文件的ZIP（不单独上传文件）
+                  zip -r ${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip \
+                    main.js \
+                    manifest.json \
+                    styles.css
+                  # 输出ZIP文件名供后续步骤使用
+                  echo "ZIP_FILE=${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip" >> $GITHUB_ENV
 
             - name: Create Release
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v1 # 使用更灵活的上传工具
               with:
-                  tag_name: ${{ github.ref_name }}
+                  tag_name: ${{ github.ref_name }} # 直接使用标签名 (v1.0.6-bata)
                   name: Release ${{ github.ref_name }}
-                  files: ${{ env.ZIP_FILE }}
-                  generate_release_notes: true
+                  files: ${{ env.ZIP_FILE }} # 只上传ZIP文件
                   draft: false
                   prerelease: false
               env:
