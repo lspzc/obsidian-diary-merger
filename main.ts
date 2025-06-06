@@ -645,13 +645,13 @@ class DiaryMergeSettingTab extends PluginSettingTab {
 		smallTip.append("3. 插件文档地址：");
 		smallTip.createEl("a", {
 			text: "查看 github 文档",
-			href: "https://community.yonyou.com/datadict/bipbook/chapter1002/chapter1002.html",
+			href: "https://github.com/lspzc/obsidian-diary-merger",
 			cls: "diary-merger-smallTip-link",
 		});
 		smallTip.append(" 或者 ");
 		smallTip.createEl("a", {
 			text: "	查看 gitee 文档",
-			href: "https://community.yonyou.com/datadict/bipbook/chapter1002/chapter1002.html",
+			href: "https://gitee.com/lspzc/obsidain-share/blob/master/%E6%8F%92%E4%BB%B6/Diary%20Merger/%E6%8F%92%E4%BB%B6%EF%BC%9ADiary%20Merger%20%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3.md",
 			cls: "diary-merger-smallTip-link",
 		});
 		// 提交 Issues
