@@ -1,68 +1,34 @@
-name: Release Obsidian Plugin
+name: Release Obsidian plugin
 
 on:
   push:
     tags:
       - "*"
 
-env:
-  PLUGIN_NAME: obsidian-diary-merger  # 修改为你的插件ID
-
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: "20.x"  # 推荐使用LTS版本
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm install
+          node-version: "18.x"
 
       - name: Build plugin
-        run: npm run build
-
-      - name: Package plugin
         run: |
-          mkdir -p dist/${{ env.PLUGIN_NAME }}
-          cp main.js manifest.json styles.css dist/${{ env.PLUGIN_NAME }}/
-          cd dist
-          zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
+          npm install
+          npm run build
 
-      - name: Create Release
-        id: create-release
-        uses: actions/create-release@v2
+      - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: "v${{ github.ref_name }}"
-          draft: false
-          prerelease: false
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
 
-      - name: Upload ZIP Asset
-        uses: actions/upload-release-asset@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./dist/${{ env.PLUGIN_NAME }}.zip
-          asset_name: ${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip
-          asset_content_type: application/zip
-
-      # 可选：上传单独文件（如果不需要可删除以下步骤）
-      - name: Upload Main.js
-        uses: actions/upload-release-asset@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./main.js
-          asset_name: main-${{ github.ref_name }}.js
-          asset_content_type: text/javascript
+          gh release create "$tag" \
+            --title="$tag" \
+            --draft \
+            main.js manifest.json styles.css
