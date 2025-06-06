@@ -18,4 +18,4 @@
 
 ## 3 怎么用
 
-请参考：
+请参考：[插件：Diary Merger 说明文档.md](https://github.com/lspzc/obsidian-diary-merger/blob/v-1.1.0-bata/documentation/插件：Diary Merger 说明文档.md)
