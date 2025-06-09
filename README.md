@@ -1,5 +1,3 @@
-![Cover](./resources/Merger.jpg)
-
 <p align="center">
   <img alt="GitHub Repo Stars" src="https://img.shields.io/github/stars/lspzc/obsidian-diary-merger">
   <img alt="GitHub Repo Forks" src="https://img.shields.io/github/forks/lspzc/obsidian-diary-merger">
