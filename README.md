@@ -1,21 +1,43 @@
+![Cover](./resources/Merger.jpg)
+
+<p align="center">
+  <img alt="GitHub Repo Stars" src="https://img.shields.io/github/stars/lspzc/obsidian-diary-merger">
+  <img alt="GitHub Repo Forks" src="https://img.shields.io/github/forks/lspzc/obsidian-diary-merger">
+</p>
+
+<p align="center">
+  <img alt="GitHub Release" src="https://img.shields.io/github/v/release/lspzc/obsidian-diary-merger">
+  <img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/lspzc/obsidian-diary-merger/total">
+  <img alt="GitHub Repo License" src="https://img.shields.io/github/license/lspzc/obsidian-diary-merger">
+  <img alt="GitHub Repo Issues" src="https://img.shields.io/github/issues/lspzc/obsidian-diary-merger">
+</p>
+
+<p align="center">
+  <a href="https://github.com/lspzc/obsidian-diary-merger/releases/download/v-1.1.0-bata/obsidian-diary-merger-v-1.1.0-bata.zip">Download</a> |
+  English |
+  <a href="./README_CN.md">中文</a>
+</p>
+
 # obsidian-diary-merger
 
-## 1 是什么
+## 1 What is it?
 
-一个 obsidian 插件
+An obsidian plugin
 
-插件功能：按照阈值与条目数 `自动/手动` 合并或追加多个日记文件至一个或多个合并文件中。
+Plugin functionality: **automatically/manually** merge or append multiple diary files into one or more merge files according to a threshold and number of entries.
 
-## 2 为什么
+## 2 Why
 
-我的痛点：
+My pain point:
 
-我是将 obsidian 日记功能通过 task，dataview 等插件作为 todo 项管理使用的，但逐渐我发现一个问题，我每天的 todo 可能只有三四条，**但我的日记文件却有上百个**（一天一篇日记嘛）
+I was using obsidian journaling as todo management via task, dataview, etc., but gradually I found a problem, my daily todo may only be 3 or 4 entries, **but I have hundreds of journal files** (one journal a day).
 
-当然，你可以维护一个文件，在里边写 todo，先不说看起来乱糟糟，一直在一个文件中写，写的多了还是要慢慢向下翻的，最重要的是，只需要点击一下日记按钮，就可以在一个全新的文件中书写，感觉超棒的有木有~
+Of course, you can maintain a file, in which to write todo, not to mention that it looks messy, has been in a file to write, write more or to slowly scroll down, the most important thing is that, just click on the diary button, you can write in a brand new file, the feeling of superb have wood ~!
 
-所以，我需要一个插件，自动帮我合并今天之前的日记（笔记完成或未完成的 todo 也是需要被查询出来的）至一个文件中
+So, I need a plugin to automatically merge my previous diary entries (notes completed or unfinished todo's also need to be queried) into one file!
 
-## 3 怎么用
+## 3 How it works
 
-请参考：[插件：Diary Merger 说明文档.md](https://github.com/lspzc/obsidian-diary-merger/blob/v-1.1.0-bata/documentation/插件：Diary Merger 说明文档.md)
+Please refer to: [Plugin: Diary Merger Documentation.md](https://github.com/lspzc/obsidian-diary-merger/blob/v-1.1.0-bata/documentation/插件: Diary Merger Documentation.md)
+
+Translated with DeepL.com (free version)
