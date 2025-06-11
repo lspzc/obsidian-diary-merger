@@ -36,4 +36,4 @@ So, I need a plugin to automatically merge my previous diary entries (notes comp
 
 ## 3 How it works
 
-Please refer to: [Plugin: Diary Merger Documentation.md](https://github.com/lspzc/obsidian-diary-merger/blob/v-1.1.0-bata/documentation/插件: Diary Merger Documentation.md)
+Please refer to: [Diary Merger Documentation](https://github.com/lspzc/obsidian-diary-merger/blob/master/documentation/%E6%8F%92%E4%BB%B6%EF%BC%9ADiary%20Merger%20%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3.md)
